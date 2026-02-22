@@ -1,32 +1,28 @@
-# System_DOCUMENTATION.md
+# System Technical Documentation
 
-## 프로젝트 개요
-Vercel 배포 테스트 및 게임 광고 랜딩 페이지 구현 프로젝트입니다.
+## 1. 개요 (Overview)
+본 문서는 소모임 회원 데이터 관리 및 조회를 위한 웹 애플리케이션의 시스템 아키텍처 및 주요 기능 구현 세부 사항을 기술합니다.
 
-## 기술 스택
-- **Framework**: Next.js (App Router)
-- **Styling**: Tailwind CSS v4
-- **Language**: TypeScript
-- **Deployment**: Vercel
+## 2. 주요 기능 및 구현 사항 (Features & Implementations)
 
-## 구현 기능
-1. **프리미엄 게임 광고 랜딩 페이지**: "Crystal Nebula: Rebirth"라는 가상의 SF 판타지 게임을 테마로 한 화려한 페이지.
-2. **시네마틱 배경**: 네뷸라 그라데이션, 스캔라인 그리드 효과, 부드러운 애니메이션 적용.
-3. **인터랙티브 요소**: 버튼 호버 애니메이션, 글래스모피즘(Glassmorphism) 네비게이션 및 카드 레이아웃.
-4. **반응형 디자인**: 모바일 및 데스크탑 환경에 최적화된 레이아웃.
+### 2.1 탈퇴회원 데이터 조회 기능
+- **설명**: 회원 관리 대시보드 내에서 '탈퇴회원' 정보를 조회할 수 있는 기능을 제공합니다.
+- **백엔드 (API)**:
+  - 파일 위치: `src/app/api/members/route.ts`
+  - URL 파라미터 `status` 값이 `탈퇴회원`으로 전달되는 경우, 구글 스프레드시트의 `탈퇴회원` 시트에서 직접 데이터를 로드하여 반환하도록 GET 요청 로직을 추가/수정했습니다.
+  - 별도의 API 엔드포인트 생성 없이 기존 회원 조회 라우트를 활용해 동적으로 대상 시트(`sheetName`)를 변경합니다 (`status === '탈퇴회원' ? '탈퇴회원' : '회원목록'`).
+- **프론트엔드 (UI)**:
+  - 파일 위치: `src/app/members/page.tsx`
+  - '탈퇴 회원' 탭 클릭 시 상태(status) 필터가 설정되어 `/api/members?status=탈퇴회원`으로 호출되며, API에서 받은 탈퇴회원 목록이 기존 테이블 컴포넌트를 통해 동일한 양식으로 정상 출력됩니다.
 
-## 프로젝트 구조
-- `src/app/page.tsx`: 게임 광고 랜딩 페이지 컴포넌트
-- `src/app/globals.css`: 전역 스타일 및 프리미엄 애니메이션 정의
-- `public/`: 정적 애셋
+## 3. 데이터베이스 (Database & Backup)
+- 애플리케이션의 기본 데이터는 Google Sheets 형태로 관리됩니다 (`회원목록`, `탈퇴회원`, `활동로그` 시트).
+- 회원 데이터의 상태 변경(예: 탈퇴 시 `회원목록` 시트에서 기록을 지우고 `탈퇴회원` 시트로 이동) 전반에 대해 `활동로그` 시트에 로그를 남겨 백업 및 추적을 지원합니다.
 
-## 배포 및 실행 방법
-- **로컬 실행**: `npm run dev` 후 [http://localhost:3000](http://localhost:3000) 접속.
-- **빌드**: `npm run build`를 통해 프로덕션 빌드 생성.
-- **배포**: Vercel CLI (`npx vercel`) 또는 GitHub 연동.
-
-## 수정 내역 (2026-02-22)
-- [Add] `npx create-next-app`을 통한 프로젝트 초기화
-- [Modify] `src/app/page.tsx`: Vercel 기본 페이지에서 게임 광고 랜딩 페이지로 테마 변경
-- [Modify] `src/app/globals.css`: Tailwind 4 설정 및 사용자 정의 애니메이션/변수 추가
-- [Update] `System_DOCUMENTATION.md`: 게임 광고 페이지 테마에 맞춰 문서 업데이트
+## 4. UI/UX 개선 및 모바일 반응형 디자인
+- **설명**: 모바일 기기 접속 시 가독성 및 사용성을 극대화하기 위해 반응형 웹앱 형태로 UI 환경을 전면 개선했습니다.
+- **주요 변경 사항**:
+  - `MobileNav` 컴포넌트 추가 (`src/components/MobileNav.tsx`): 모바일 환경에서 좌측 사이드바가 화면을 가리는 현상을 해결하고자 화면 하단 고정 탭 메뉴(Bottom Navigation)를 도입했습니다.
+  - `layout.tsx` 컨테이너 및 반응형 최적화: `md` 중단점을 활용해 사이드바는 PC 환경에서만 표시하고, 전체 컨테이너 및 폰트 크기, 마진, 패딩을 모바일에 최적화했습니다.
+  - 회원 관리 페이지 (`src/app/members/page.tsx`): 기존의 테이블 UI는 PC 뷰에서 유지하되, 모바일 화면에서는 카드 형태의 뷰로 변환하여 가로 스크롤 이슈를 제거하고 터치 편의성을 높였습니다.
+  - 상세 조회 및 분석 화면: `<button>` 컴포넌트의 가로 폭 확장 및 Grid 열 수(`grid-cols-2` $\rightarrow$ `grid-cols-1 sm:grid-cols-2`) 축소, 통계 페이지 내 긴 텍스트 `truncate` 처리 등 겹침 현상을 모두 수정했습니다.

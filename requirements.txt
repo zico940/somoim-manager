@@ -5,3 +5,5 @@ react-dom
 tailwindcss
 typescript
 eslint
+googleapis
+lucide-react
