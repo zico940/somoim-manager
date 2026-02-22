@@ -1,0 +1,7 @@
+# Node.js Project Dependencies (Refer to package.json)
+next
+react
+react-dom
+tailwindcss
+typescript
+eslint
